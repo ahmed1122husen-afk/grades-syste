@@ -1,0 +1,27 @@
+from scapy.all import ARP, Ether, srp
+
+def scan(ip_range):
+    print(f"[+] Scanning network: {ip_range}")
+    # 1. إنشاء حزمة طلب ARP (تطلب هوية الأجهزة)
+    arp_request = ARP(pdst=ip_range)
+    # 2. إنشاء حزمة إيثرنت لإرسالها للجميع (Broadcast)
+    broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
+    
+    packet = broadcast / arp_request
+    
+    # 3. إرسال الحزمة واستقبال الردود
+    result = srp(packet, timeout=3, verbose=False)[0]
+
+    clients = []
+    for sent, received in result:
+        clients.append({'ip': received.psrc, 'mac': received.hwsrc})
+
+    # 4. طباعة النتائج بشكل منظم
+    print("Available devices in the network:")
+    print("IP Address\t\tMAC Address")
+    print("-----------------------------------------")
+    for client in clients:
+        print(f"{client['ip']}\t\t{client['mac']}")
+
+# ملاحظة: استبدل 192.168.1.1/24 بمدى شبكتك (غالباً هو هذا)
+scan("192.168.1.1/24")
